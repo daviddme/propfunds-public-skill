@@ -50,27 +50,30 @@ ACTION_PARAMS = {
 def load_creds() -> dict:
     """Load the caller's session from creds.json or PROP_FUND_* env vars."""
 
+    # Only x_authorization (the Admin-Token) is required. cookie/did are legacy
+    # and optional - the server derives `did` and doesn't need the cookie.
+    keys = ("x_authorization", "trade_account", "cookie", "did")
     candidates = []
     if os.environ.get("PROP_FUND_CREDS"):
         candidates.append(Path(os.environ["PROP_FUND_CREDS"]))
     skill_dir = Path(__file__).resolve().parent.parent
     candidates += [skill_dir / "creds.json", Path.cwd() / "creds.json"]
+    data = None
     for p in candidates:
         if p and p.is_file():
             data = json.loads(p.read_text())
-            return {k: data.get(k, "") for k in ("cookie", "x_authorization", "did", "trade_account")}
-    if os.environ.get("PROP_FUND_COOKIE"):
-        return {
-            "cookie": os.environ.get("PROP_FUND_COOKIE", ""),
-            "x_authorization": os.environ.get("PROP_FUND_X_AUTHORIZATION", ""),
-            "did": os.environ.get("PROP_FUND_DID", ""),
-            "trade_account": os.environ.get("PROP_FUND_TRADE_ACCOUNT", ""),
-        }
-    raise SystemExit(
-        "No credentials found.\n"
-        "Create creds.json (copy creds.example.json) or set PROP_FUND_* env vars.\n"
-        "See onboarding.md for how to get your cookie with Cookie-Editor."
-    )
+            break
+    if data is None and os.environ.get("PROP_FUND_X_AUTHORIZATION"):
+        data = {k: os.environ.get("PROP_FUND_" + k.upper(), "") for k in keys}
+    if data is None or not data.get("x_authorization"):
+        raise SystemExit(
+            "No token found.\n"
+            "Put your Admin-Token in creds.json as x_authorization (copy "
+            "creds.example.json), or set PROP_FUND_X_AUTHORIZATION.\n"
+            "See onboarding.md: log in, open the browser console, run "
+            'copy(localStorage.getItem("Admin-Token")).'
+        )
+    return {k: data.get(k, "") for k in keys}
 
 
 def post(action: str, params: dict, creds: dict, url: str, api_key: str | None) -> dict:

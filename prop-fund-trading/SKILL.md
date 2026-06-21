@@ -4,9 +4,9 @@ description: >-
   Trade an authorised Bitfunded-style prop-firm account through a hosted webhook.
   Use when the user wants to check their prop account (status, accounts,
   balance, positions, overview, history), size a position, or open/close a BTC
-  (or other USDT-pair) trade. The user supplies their own browser session
-  (cookie via Cookie-Editor, plus two headers). Dry-run is always the default;
-  a live order needs an explicit confirmation and the --live flag.
+  (or other USDT-pair) trade. The user supplies one value - their session token
+  (x_authorization), copied from the browser console. Dry-run is always the
+  default; a live order needs an explicit confirmation and the --live flag.
 ---
 
 # Prop Fund Trading
@@ -25,20 +25,23 @@ You talk to it with the bundled client:
 
 ## First run: onboarding
 
-If the user has not set up credentials (any command returns an
-`error_type: "session_expired"` or the client says "No credentials found"),
-walk them through `onboarding.md`. In short, they:
+Setup needs exactly **one value**: the user's session token. If a command
+returns `error_type: "session_expired"` or the client says "No token found",
+walk them through `onboarding.md`. In short:
 
-1. Install the **Cookie-Editor** Chrome extension and log in to Bitfunded.
-2. Export their cookie (Cookie-Editor -> Export -> **Header String**).
-3. Grab two request headers (`x-authorization`, `did`) from DevTools.
-4. Save all of it into `creds.json` (copy `creds.example.json`).
+1. Log in to `https://trader.bitfunded.com`, open the browser console (F12 ->
+   Console), and run: `copy(localStorage.getItem("Admin-Token"))`.
+2. Paste that token into `creds.json` (copy `creds.example.json`) as
+   `x_authorization`.
+3. Run `accounts` to list their challenges, and put the chosen `tradeAccount`
+   id into `creds.json` as `trade_account` (or pass `--trade-account`).
 
-Then run `python scripts/webhook_client.py status` to confirm it works, and
-`accounts` to list their challenge accounts / trade-account ids.
+Then `python scripts/webhook_client.py status` should show `portal: ok` /
+`trading: ok`. No cookie, no browser extension, no header hunting - the token is
+the only thing the API checks, and `did` is generated server-side.
 
-Never ask the user to paste their cookie or tokens into the chat. They put them
-into `creds.json` themselves. `creds.json` is gitignored - never commit it.
+Never ask the user to paste their token into the chat. They put it into
+`creds.json` themselves. `creds.json` is gitignored - never commit it.
 
 ## Golden rules (never break these)
 

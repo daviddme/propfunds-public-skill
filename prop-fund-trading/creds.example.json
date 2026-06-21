@@ -1,6 +1,4 @@
 {
-  "cookie": "PASTE_THE_COOKIE_EDITOR_HEADER_STRING_HERE",
-  "x_authorization": "PASTE_THE_X_AUTHORIZATION_HEADER_HERE",
-  "did": "PASTE_THE_DID_HEADER_HERE",
+  "x_authorization": "PASTE_YOUR_ADMIN_TOKEN_HERE",
   "trade_account": ""
 }

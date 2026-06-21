@@ -8,13 +8,15 @@ Content-Type: application/json
 X-API-Key: <key>        # only if the webhook is not public
 {
   "action": "<name>",
-  "credentials": { "cookie": "...", "x_authorization": "...", "did": "...", "trade_account": "..." },
+  "credentials": { "x_authorization": "<Admin-Token>", "trade_account": "..." },
   "params": { ... }
 }
 ```
 
-- **credentials** - your own session (see `onboarding.md`). Sent on every
-  request; never stored on the server.
+- **credentials** - your own session token (see `onboarding.md`). Only
+  `x_authorization` is required; `trade_account` is optional (discoverable via
+  `accounts`). `cookie` and `did` are legacy/optional - the server derives `did`
+  and does not need a cookie. Sent on every request; never stored on the server.
 - **Response envelope** - `{"ok": true, "action": ..., "data": {...}}` on
   success, or `{"ok": false, "action": ..., "error_type": "...", "error": "..."}`.
 - **Auth** - public by default (no key). If the operator set a key, send it as
@@ -145,7 +147,7 @@ Close a position. Full market close by default.
 | `error_type` | meaning | what to do |
 |---|---|---|
 | `validation` | bad inputs (missing TP/SL, leverage > 5, unknown symbol, bad id) | fix the params and retry |
-| `session_expired` | the session / token lapsed or was rejected | redo onboarding (refresh cookie + headers) |
+| `session_expired` | the token lapsed or was rejected | grab a fresh Admin-Token (one console command - see onboarding.md) |
 | `api` | the trading platform returned an error | read the message; often transient |
 | `bad_request` | the JSON body was malformed | check the request shape |
 | `config` | a server configuration problem | tell the operator |

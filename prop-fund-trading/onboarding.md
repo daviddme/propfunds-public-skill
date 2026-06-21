@@ -1,58 +1,26 @@
-# Onboarding - get your Bitfunded session
+# Onboarding - one value, about a minute
 
-This skill trades **your own** account through a hosted webhook. To do that it
-needs your browser's logged-in session: one cookie and two request headers.
-You get them once, save them in `creds.json`, and you're set.
+This skill needs **one** value: your session **token** (`x_authorization`).
+No cookie, no browser extension, no header hunting. We verified that the token
+is the only thing the API actually checks - the cookie isn't needed at all, and
+the device id is generated for you.
 
-Nothing here bypasses any security. You are copying a session your own browser
-already has, from your own logged-in account.
+## Step 1 - copy your token (one console command)
 
-You need four values:
+1. Log in to the Bitfunded trader portal: `https://trader.bitfunded.com`
+2. Open the browser console: **F12** (or `Cmd+Option+I`) -> **Console** tab.
+3. Paste this and press Enter:
 
-| field | where it comes from |
-|---|---|
-| `cookie` | the **Cookie-Editor** extension (Export -> Header String) |
-| `x_authorization` | DevTools -> a `trader.bitfunded.com` request header |
-| `did` | DevTools -> a `cb.bitfunded.com` request header |
-| `trade_account` | the `accounts` command lists yours (you don't hunt for it) |
+   ```js
+   copy(localStorage.getItem("Admin-Token"))
+   ```
 
-## Part 1 - the cookie (Cookie-Editor)
+   That copies your token to the clipboard. (To see it instead of copying, run
+   `localStorage.getItem("Admin-Token")` and copy the printed string.)
 
-1. Install **Cookie-Editor** from the Chrome Web Store
-   (https://chromewebstore.google.com/ - search "Cookie-Editor").
-2. Log in to the Bitfunded trader portal in Chrome
-   (`https://trader.bitfunded.com`). Make sure you can see your dashboard.
-3. Click the **Cookie-Editor** icon in the toolbar **while you are on the
-   bitfunded.com tab**.
-4. At the bottom of Cookie-Editor click **Export** (the export icon), then
-   choose **Export as Header String**.
-   - This copies a single line like `name1=value1; name2=value2; ...` to your
-     clipboard. That is exactly the `cookie` value you need.
-5. Paste it as the `cookie` field in `creds.json`.
+## Step 2 - save it
 
-> Tip: if you only see "Export as JSON / Netscape", pick **Header String** if
-> available. If your version lacks it, use DevTools instead (Part 2 also shows
-> the cookie as the `-b '...'` value in a copied cURL).
-
-## Part 2 - the two headers (DevTools)
-
-Cookie-Editor only exports cookies, so grab these two headers from DevTools:
-
-1. Still logged in, press `F12` (or `Cmd+Option+I`) to open DevTools, go to the
-   **Network** tab, and tick **Preserve log**.
-2. Click around your dashboard so requests appear.
-3. Find a request to **`trader.bitfunded.com`** (e.g. one ending in
-   `/analyzer/accounts` or `/users/profile`). Click it, open the
-   **Headers** section (or right-click -> **Copy -> Copy as cURL**), and read
-   off:
-   - `x-authorization: <long value>`  -> this is `x_authorization`.
-4. Now click any chart or the trade panel so a request to
-   **`cb.bitfunded.com`** fires. Open that request's headers and read off:
-   - `did: <uuid value>`  -> this is `did`.
-
-## Part 3 - save creds.json
-
-Copy the template and fill it in:
+Copy the template and paste your token in:
 
 ```bash
 cp creds.example.json creds.json
@@ -60,35 +28,39 @@ cp creds.example.json creds.json
 
 ```json
 {
-  "cookie": "<the Header String from Cookie-Editor>",
-  "x_authorization": "<the x-authorization header>",
-  "did": "<the did header>",
+  "x_authorization": "<paste your token here>",
   "trade_account": ""
 }
 ```
 
-Leave `trade_account` blank for now. **Never commit `creds.json`** - it is
-gitignored. Treat these values like a password.
+**Never commit `creds.json`** - it is gitignored. Treat the token like a
+password.
 
-## Part 4 - verify and find your trade account
-
-```bash
-python scripts/webhook_client.py status
-```
-
-You want `"portal": "ok"` and `"trading": "ok"`. Then list your accounts:
+## Step 3 - pick your account and verify
 
 ```bash
-python scripts/webhook_client.py accounts
+python scripts/webhook_client.py accounts   # lists your challenges + tradeAccount ids
+python scripts/webhook_client.py status      # want portal: ok, trading: ok
 ```
 
-Pick the `tradeAccount` id of the challenge you want to trade and put it in the
-`trade_account` field of `creds.json` (or pass `--trade-account <id>` per
-command).
+Put the `tradeAccount` id you want to trade into `creds.json` as
+`trade_account` (or pass `--trade-account <id>` per command). Done.
 
-## When it stops working
+## If it stops working
 
-These values are tied to your browser login and **expire**. If `status` says
-`session_expired` (or a `403`), just redo Part 1 and Part 2 to refresh the
-cookie and headers, and save them again. Logging out of Bitfunded invalidates
-them, which is how you "rotate" if a value ever leaks.
+The token is tied to your browser login and will eventually expire. If `status`
+returns `session_expired`, just repeat Step 1 (one console command) to grab a
+fresh token and save it again.
+
+## Why this changed (you may have seen the old way)
+
+Earlier docs asked for a cookie (via Cookie-Editor) plus two request headers
+(`x-authorization`, `did`). It turned out:
+
+- the **cookie is not needed** at all,
+- **`did`** is a device id the platform accepts as any value, so it is generated
+  for you,
+- the portal **`x-authorization` token** (which lives in your browser at
+  `localStorage["Admin-Token"]`) is the only thing that authenticates.
+
+So you only need that one token now. Ignore any older cookie instructions.
