@@ -1,0 +1,6 @@
+# NEVER commit your real session.
+creds.json
+*.creds.json
+
+__pycache__/
+*.py[cod]
