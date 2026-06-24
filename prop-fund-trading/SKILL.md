@@ -72,6 +72,21 @@ See `api-reference.md` for full parameters and response shapes. Quick map:
 | "open a trade" | `open ...` (dry-run, then `--live`) |
 | "close my BTC position" | `close --symbol BTCUSDT --live` |
 | "show my trade history / bills" | `history --type bills` |
+| "is this account/challenge affiliated to us?" | `check_affiliation --challenge-id <id>` |
+
+## Checking affiliation when a user adds an account
+
+When a user first connects a new prop account/challenge, check whether it came
+through our affiliate link before doing anything else:
+
+```bash
+python scripts/webhook_client.py check_affiliation --challenge-id 200141747
+```
+
+`{"affiliated": true, ...}` means it's one of our referred orders; `false` means
+it isn't (or our affiliate data hasn't synced yet). It needs no token. The check
+tries both the full challenge id and the id with a leading `200` stripped, since
+the challenge id looks like `200<orderNumber>`.
 
 Add `--trade-account <id>` to target a specific subaccount (omit to use the
 default in `creds.json`).

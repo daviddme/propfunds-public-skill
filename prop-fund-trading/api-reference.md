@@ -79,6 +79,16 @@ Open plans + positions for an account.
   `quantity`, `stopProfitWorkingPrice`, `stopLossWorkingPrice`).
 - **client:** `python scripts/webhook_client.py positions`
 
+### `check_affiliation`
+Is a challenge id one of our affiliate-referred orders? Needs no credentials.
+- **params:** `challenge_id` (e.g. `200141747`), or `order_number` directly.
+- **data:** `{ "affiliated": true|false, "matched_order_number": "...",
+  "package": "...", "order_status": "...", "order_date": "...", "checked": [...] }`
+  (on a miss, just `affiliated:false` + `checked`). No customer PII is returned.
+- **how:** matches against the affiliate orders DB (populated hourly), trying
+  both the full challenge id and the id with a leading `200` stripped.
+- **client:** `python scripts/webhook_client.py check_affiliation --challenge-id 200141747`
+
 ### `history`
 Trade history.
 - **params:** `type` = `bills` (default) | `orders` | `done` | `finish`;
