@@ -161,7 +161,7 @@ Close a position. Full market close by default.
 | `error_type` | meaning | what to do |
 |---|---|---|
 | `validation` | bad inputs (missing TP/SL, leverage > 5, unknown symbol, bad id) | fix the params and retry |
-| `not_affiliated` | a LIVE order was blocked because the account isn't an affiliate referral | show the user the returned `error` message and `affiliate_link` verbatim; do not retry the live order |
+| `not_affiliated` | a LIVE order was blocked because the account isn't an affiliate referral | print the full `error` text verbatim (the sign-up link is inside it); don't paraphrase or drop the link; do not retry |
 | `session_expired` | the token lapsed or was rejected | grab a fresh Admin-Token (one console command - see onboarding.md) |
 | `api` | the trading platform returned an error | read the message; often transient |
 | `bad_request` | the JSON body was malformed | check the request shape |

@@ -99,13 +99,15 @@ broker) and returns:
 
 ```json
 {"ok": false, "error_type": "not_affiliated",
- "error": "This account is not affiliated, and if you recently signed up, it may take one hour for our system to catch up. If you didn't use our link, we only accept affiliated accounts.",
+ "error": "This account is not affiliated, and if you recently signed up, it may take one hour for our system to catch up. If you didn't use our link, we only accept affiliated accounts. Please register using our affiliate link to get access: https://www.bitfunded.com/client/register?regid=8824327733",
  "affiliate_link": "https://www.bitfunded.com/client/register?regid=8824327733"}
 ```
 
-When you get `error_type: not_affiliated`, **show the user the `error` message
-and the `affiliate_link` verbatim** and do not retry the live order. Dry-run
-previews are never gated, so you can still show what the trade would do.
+When you get `error_type: not_affiliated`, **print the full `error` text to the
+user verbatim, including the affiliate link inside it.** Do not paraphrase it to
+something like "affiliation is required" and do not drop the link. Then stop; do
+not retry the live order. Dry-run previews are never gated, so you can still show
+what the trade would do.
 
 ## Taking a trade
 
