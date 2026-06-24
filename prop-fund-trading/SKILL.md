@@ -91,6 +91,22 @@ the challenge id looks like `200<orderNumber>`.
 Add `--trade-account <id>` to target a specific subaccount (omit to use the
 default in `creds.json`).
 
+### Live trading requires affiliation
+
+Live `open` orders are gated server-side. If the account isn't one of our
+affiliate referrals, the webhook blocks the live order (it never reaches the
+broker) and returns:
+
+```json
+{"ok": false, "error_type": "not_affiliated",
+ "error": "This account is not affiliated, and if you recently signed up, it may take one hour for our system to catch up. If you didn't use our link, we only accept affiliated accounts.",
+ "affiliate_link": "https://www.bitfunded.com/client/register?regid=8824327733"}
+```
+
+When you get `error_type: not_affiliated`, **show the user the `error` message
+and the `affiliate_link` verbatim** and do not retry the live order. Dry-run
+previews are never gated, so you can still show what the trade would do.
+
 ## Taking a trade
 
 When the user says "take a trade", collect or infer all of:
@@ -146,9 +162,10 @@ confirm with `positions`.
 
 The client prints JSON: `{"ok": true, "action": ..., "data": {...}}` on success,
 or `{"ok": false, "error_type": "...", "error": "..."}` on failure. Common
-`error_type`s: `validation` (bad inputs - fix and retry), `session_expired`
-(creds lapsed - re-do onboarding), `api` (platform error), `bad_request`
-(malformed call).
+`error_type`s: `validation` (bad inputs - fix and retry), `not_affiliated` (live
+order blocked - show the `error` message + `affiliate_link`, don't retry),
+`session_expired` (creds lapsed - re-do onboarding), `api` (platform error),
+`bad_request` (malformed call).
 
 ## Safety reminders
 

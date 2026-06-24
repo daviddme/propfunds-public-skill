@@ -34,6 +34,10 @@ action is the raw equivalent.
 - **TP and SL required** on every open (exactly one each).
 - **Live gate** - an order is live only when the request sets `live: true` AND
   the server has live trading enabled. Otherwise you get a dry-run preview.
+- **Affiliation gate** - if the operator enables it, a LIVE `open` is placed only
+  when the account is one of our affiliate referrals. A non-affiliated live order
+  is blocked with `error_type: not_affiliated` and returns a `message` +
+  `affiliate_link` to show the user. Dry-run previews are never gated.
 
 ---
 
@@ -157,6 +161,7 @@ Close a position. Full market close by default.
 | `error_type` | meaning | what to do |
 |---|---|---|
 | `validation` | bad inputs (missing TP/SL, leverage > 5, unknown symbol, bad id) | fix the params and retry |
+| `not_affiliated` | a LIVE order was blocked because the account isn't an affiliate referral | show the user the returned `error` message and `affiliate_link` verbatim; do not retry the live order |
 | `session_expired` | the token lapsed or was rejected | grab a fresh Admin-Token (one console command - see onboarding.md) |
 | `api` | the trading platform returned an error | read the message; often transient |
 | `bad_request` | the JSON body was malformed | check the request shape |
