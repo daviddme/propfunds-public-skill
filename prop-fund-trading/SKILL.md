@@ -72,42 +72,30 @@ See `api-reference.md` for full parameters and response shapes. Quick map:
 | "open a trade" | `open ...` (dry-run, then `--live`) |
 | "close my BTC position" | `close --symbol BTCUSDT --live` |
 | "show my trade history / bills" | `history --type bills` |
-| "is this account/challenge affiliated to us?" | `check_affiliation --challenge-id <id>` |
+| "(admin) is this challenge one of our referrals?" | `check_affiliation --challenge-id <id>` (FYI only, never a gate) |
 
-## Checking affiliation when a user adds an account
+## Affiliation is informational only - NEVER block trading on it
 
-When a user first connects a new prop account/challenge, check whether it came
-through our affiliate link before doing anything else:
+**Everyone may use this skill, affiliated or not.** Do NOT run an affiliation
+check as a gate, and do NOT refuse, warn, or hesitate based on affiliation
+status. Never call `check_affiliation` before `status`, `accounts`, `open`,
+`close`, or any other action as a prerequisite. Just do what the user asked.
+
+`check_affiliation` still exists as an **optional, admin-only lookup** for when
+the operator explicitly asks "is this challenge one of our referrals?". It never
+affects whether a user can trade:
 
 ```bash
 python scripts/webhook_client.py check_affiliation --challenge-id 200141747
 ```
 
-`{"affiliated": true, ...}` means it's one of our referred orders; `false` means
-it isn't (or our affiliate data hasn't synced yet). It needs no token. The check
-tries both the full challenge id and the id with a leading `200` stripped, since
-the challenge id looks like `200<orderNumber>`.
+`{"affiliated": true|false, ...}` is purely a data lookup (it may say `false`
+simply because the affiliate data hasn't synced). Treat it as FYI, nothing more.
 
-Add `--trade-account <id>` to target a specific subaccount (omit to use the
-default in `creds.json`).
-
-### Live trading requires affiliation
-
-Live `open` orders are gated server-side. If the account isn't one of our
-affiliate referrals, the webhook blocks the live order (it never reaches the
-broker) and returns:
-
-```json
-{"ok": false, "error_type": "not_affiliated",
- "error": "This account is not affiliated, and if you recently signed up, it may take one hour for our system to catch up. If you didn't use our link, we only accept affiliated accounts. Please register using our affiliate link to get access: https://www.bitfunded.com/client/register?regid=8824327733",
- "affiliate_link": "https://www.bitfunded.com/client/register?regid=8824327733"}
-```
-
-When you get `error_type: not_affiliated`, **print the full `error` text to the
-user verbatim, including the affiliate link inside it.** Do not paraphrase it to
-something like "affiliation is required" and do not drop the link. Then stop; do
-not retry the live order. Dry-run previews are never gated, so you can still show
-what the trade would do.
+If the server ever returns `error_type: not_affiliated` (only when the operator
+has re-enabled the server gate), show the returned `error` text verbatim,
+including the affiliate link inside it. By default that gate is OFF and you will
+not see it.
 
 ## Taking a trade
 
@@ -164,10 +152,10 @@ confirm with `positions`.
 
 The client prints JSON: `{"ok": true, "action": ..., "data": {...}}` on success,
 or `{"ok": false, "error_type": "...", "error": "..."}` on failure. Common
-`error_type`s: `validation` (bad inputs - fix and retry), `not_affiliated` (live
-order blocked - show the `error` message + `affiliate_link`, don't retry),
-`session_expired` (creds lapsed - re-do onboarding), `api` (platform error),
-`bad_request` (malformed call).
+`error_type`s: `validation` (bad inputs - fix and retry), `session_expired`
+(creds lapsed - re-do onboarding), `api` (platform error), `bad_request`
+(malformed call). (`not_affiliated` only appears if the operator re-enables the
+server affiliation gate, which is OFF by default - show its `error` text if seen.)
 
 ## Safety reminders
 

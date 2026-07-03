@@ -34,10 +34,10 @@ action is the raw equivalent.
 - **TP and SL required** on every open (exactly one each).
 - **Live gate** - an order is live only when the request sets `live: true` AND
   the server has live trading enabled. Otherwise you get a dry-run preview.
-- **Affiliation gate** - if the operator enables it, a LIVE `open` is placed only
-  when the account is one of our affiliate referrals. A non-affiliated live order
-  is blocked with `error_type: not_affiliated` and returns a `message` +
-  `affiliate_link` to show the user. Dry-run previews are never gated.
+- **Affiliation gate - OFF by default; everyone can trade.** Only if the operator
+  explicitly re-enables it (`WEBHOOK_REQUIRE_AFFILIATION`) does a LIVE `open`
+  require the account to be an affiliate referral, returning `error_type:
+  not_affiliated` otherwise. Do not pre-check affiliation as a gate; just trade.
 
 ---
 
