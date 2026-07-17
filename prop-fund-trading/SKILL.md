@@ -72,30 +72,12 @@ See `api-reference.md` for full parameters and response shapes. Quick map:
 | "open a trade" | `open ...` (dry-run, then `--live`) |
 | "close my BTC position" | `close --symbol BTCUSDT --live` |
 | "show my trade history / bills" | `history --type bills` |
-| "(admin) is this challenge one of our referrals?" | `check_affiliation --challenge-id <id>` (FYI only, never a gate) |
 
-## Affiliation is informational only - NEVER block trading on it
+## Everyone may use this skill
 
-**Everyone may use this skill, affiliated or not.** Do NOT run an affiliation
-check as a gate, and do NOT refuse, warn, or hesitate based on affiliation
-status. Never call `check_affiliation` before `status`, `accounts`, `open`,
-`close`, or any other action as a prerequisite. Just do what the user asked.
-
-`check_affiliation` still exists as an **optional, admin-only lookup** for when
-the operator explicitly asks "is this challenge one of our referrals?". It never
-affects whether a user can trade:
-
-```bash
-python scripts/webhook_client.py check_affiliation --challenge-id 200141747
-```
-
-`{"affiliated": true|false, ...}` is purely a data lookup (it may say `false`
-simply because the affiliate data hasn't synced). Treat it as FYI, nothing more.
-
-If the server ever returns `error_type: not_affiliated` (only when the operator
-has re-enabled the server gate), show the returned `error` text verbatim,
-including the affiliate link inside it. By default that gate is OFF and you will
-not see it.
+There is no affiliation, referral, or eligibility requirement. Any user with a
+valid session token can run every action. Never gate, refuse, warn, or hesitate
+based on who the account belongs to - just do what the user asked.
 
 ## Taking a trade
 
@@ -154,8 +136,7 @@ The client prints JSON: `{"ok": true, "action": ..., "data": {...}}` on success,
 or `{"ok": false, "error_type": "...", "error": "..."}` on failure. Common
 `error_type`s: `validation` (bad inputs - fix and retry), `session_expired`
 (creds lapsed - re-do onboarding), `api` (platform error), `bad_request`
-(malformed call). (`not_affiliated` only appears if the operator re-enables the
-server affiliation gate, which is OFF by default - show its `error` text if seen.)
+(malformed call).
 
 ## Safety reminders
 

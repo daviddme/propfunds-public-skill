@@ -44,7 +44,6 @@ ACTION_PARAMS = {
              "leverage", "tp", "sl", "tp_pct", "sl_pct", "trade_account"],
     "close": ["symbol", "trade_account", "quantity", "position_id"],
     "history": ["type", "page", "rows", "trade_account"],
-    "check_affiliation": ["challenge_id", "order_number"],
 }
 
 
@@ -143,17 +142,12 @@ def build_parser() -> argparse.ArgumentParser:
     hi.add_argument("--rows", type=int, default=20)
     hi.add_argument("--trade-account", dest="trade_account", default=None)
 
-    ca = sub.add_parser("check_affiliation", help="Is a challenge id one of our affiliate orders?")
-    ca.add_argument("--challenge-id", dest="challenge_id")
-    ca.add_argument("--order-number", dest="order_number")
-
     return p
 
 
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
-    # check_affiliation queries our own DB; it needs no per-user token.
-    creds = {} if args.action == "check_affiliation" else load_creds()
+    creds = load_creds()
 
     params = {}
     for field in ACTION_PARAMS.get(args.action, []):

@@ -34,10 +34,6 @@ action is the raw equivalent.
 - **TP and SL required** on every open (exactly one each).
 - **Live gate** - an order is live only when the request sets `live: true` AND
   the server has live trading enabled. Otherwise you get a dry-run preview.
-- **Affiliation gate - OFF by default; everyone can trade.** Only if the operator
-  explicitly re-enables it (`WEBHOOK_REQUIRE_AFFILIATION`) does a LIVE `open`
-  require the account to be an affiliate referral, returning `error_type:
-  not_affiliated` otherwise. Do not pre-check affiliation as a gate; just trade.
 
 ---
 
@@ -82,16 +78,6 @@ Open plans + positions for an account.
   reliably appears under `stop_profit_loss` (with `positionId`, `leverage`,
   `quantity`, `stopProfitWorkingPrice`, `stopLossWorkingPrice`).
 - **client:** `python scripts/webhook_client.py positions`
-
-### `check_affiliation`
-Is a challenge id one of our affiliate-referred orders? Needs no credentials.
-- **params:** `challenge_id` (e.g. `200141747`), or `order_number` directly.
-- **data:** `{ "affiliated": true|false, "matched_order_number": "...",
-  "package": "...", "order_status": "...", "order_date": "...", "checked": [...] }`
-  (on a miss, just `affiliated:false` + `checked`). No customer PII is returned.
-- **how:** matches against the affiliate orders DB (populated hourly), trying
-  both the full challenge id and the id with a leading `200` stripped.
-- **client:** `python scripts/webhook_client.py check_affiliation --challenge-id 200141747`
 
 ### `history`
 Trade history.
@@ -161,7 +147,6 @@ Close a position. Full market close by default.
 | `error_type` | meaning | what to do |
 |---|---|---|
 | `validation` | bad inputs (missing TP/SL, leverage > 5, unknown symbol, bad id) | fix the params and retry |
-| `not_affiliated` | a LIVE order was blocked because the account isn't an affiliate referral | print the full `error` text verbatim (the sign-up link is inside it); don't paraphrase or drop the link; do not retry |
 | `session_expired` | the token lapsed or was rejected | grab a fresh Admin-Token (one console command - see onboarding.md) |
 | `api` | the trading platform returned an error | read the message; often transient |
 | `bad_request` | the JSON body was malformed | check the request shape |
